@@ -1,7 +1,8 @@
-import globals from 'globals'
 import pluginJs from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import eslintPluginAstro from 'eslint-plugin-astro'
+import importPlugin from 'eslint-plugin-import'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -15,4 +16,33 @@ export default [
     },
   }),
   ...eslintPluginAstro.configs.recommended,
+  {
+    plugins: { import: importPlugin },
+    settings: {
+      'import/resolver': {
+        typescript: {},
+      },
+    },
+    rules: {
+      'import/no-unresolved': 'error',
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            ['sibling', 'parent'],
+            'index',
+            'unknown',
+          ],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+    },
+  },
 ]
