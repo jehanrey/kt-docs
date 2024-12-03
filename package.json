@@ -1,0 +1,32 @@
+{
+  "name": "kt-docs",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/preact": "^3.5.4",
+    "@astrojs/tailwind": "^5.1.2",
+    "astro": "^4.16.16",
+    "preact": "^10.25.1",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.7.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "eslint": "^9.16.0",
+    "eslint-plugin-astro": "^1.3.1",
+    "globals": "^15.13.0",
+    "prettier": "^3.4.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "typescript-eslint": "^8.17.0"
+  }
+}
