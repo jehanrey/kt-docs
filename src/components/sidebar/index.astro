@@ -1,0 +1,22 @@
+---
+const pages = await Astro.glob('../../pages/docs/*.md')
+---
+
+<aside class="hidden w-64 bg-gray-100 p-6 md:block dark:bg-gray-800">
+  <nav>
+    <ul class="space-y-2">
+      {
+        pages.map((page) => (
+          <li>
+            <a
+              href={page.url}
+              class="block rounded px-4 py-2 transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              {page.frontmatter.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</aside>

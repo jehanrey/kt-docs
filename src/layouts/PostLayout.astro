@@ -1,0 +1,13 @@
+---
+import BaseLayout from './BaseLayout.astro'
+const { minutesRead, title } = Astro.props.frontmatter
+---
+
+<BaseLayout title={title}>
+  <div class="flex">
+    <div>
+      <slot />
+    </div>
+    <p>{minutesRead}</p>
+  </div>
+</BaseLayout>

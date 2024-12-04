@@ -1,10 +1,10 @@
 ---
 import Code from '../components/code.astro'
 import Test from '../components/test.tsx'
-import Layout from '../layouts/Layout.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
 ---
 
-<Layout>
+<BaseLayout title="KT Docs">
   <Test client:load />
   <Code />
-</Layout>
+</BaseLayout>

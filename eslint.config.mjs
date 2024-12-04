@@ -20,11 +20,12 @@ export default [
     plugins: { import: importPlugin },
     settings: {
       'import/resolver': {
-        typescript: {},
+        typescript: {
+          alwaysTryTypes: true,
+        },
       },
     },
     rules: {
-      'import/no-unresolved': 'error',
       'import/order': [
         'error',
         {

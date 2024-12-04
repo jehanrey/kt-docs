@@ -1,10 +1,9 @@
 // @ts-check
-// @ts-check
+import preact from '@astrojs/preact'
+import tailwind from '@astrojs/tailwind'
 import { defineConfig } from 'astro/config'
 
-import tailwind from '@astrojs/tailwind'
-
-import preact from '@astrojs/preact'
+import { remarkReadingTime } from './src/lib/markdown/remark-reading-time.mjs'
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,5 +12,6 @@ export default defineConfig({
     shikiConfig: {
       theme: 'houston',
     },
+    remarkPlugins: [remarkReadingTime],
   },
 })

@@ -20,9 +20,15 @@ importers:
       astro:
         specifier: ^4.16.16
         version: 4.16.16(rollup@4.28.0)(typescript@5.7.2)
+      mdast-util-to-string:
+        specifier: ^4.0.0
+        version: 4.0.0
       preact:
         specifier: ^10.25.1
         version: 10.25.1
+      reading-time:
+        specifier: ^1.5.0
+        version: 1.5.0
       tailwindcss:
         specifier: ^3.4.15
         version: 3.4.15
@@ -2454,6 +2460,9 @@ packages:
   readdirp@4.0.2:
     resolution: {integrity: sha512-yDMz9g+VaZkqBYS/ozoBJwaBhTbZo3UNYQHNRw1D3UFQB8oHB4uS/tAODO+ZLjGWmUbKnIlOWO+aaIiAxrUWHA==}
     engines: {node: '>= 14.16.0'}
+
+  reading-time@1.5.0:
+    resolution: {integrity: sha512-onYyVhBNr4CmAxFsKS7bz+uTLRakypIe4R+5A824vBSkQy/hB3fZepoVEf8OVAxzLvK+H/jm9TzpI3ETSm64Kg==}
 
   reflect.getprototypeof@1.0.7:
     resolution: {integrity: sha512-bMvFGIUKlc/eSfXNX+aZ+EL95/EgZzuwA0OBPTbZZDEJw/0AkentjMuM1oiRfwHrshqk4RzdgiTg5CcDalXN5g==}
@@ -5885,6 +5894,8 @@ snapshots:
       picomatch: 2.3.1
 
   readdirp@4.0.2: {}
+
+  reading-time@1.5.0: {}
 
   reflect.getprototypeof@1.0.7:
     dependencies:

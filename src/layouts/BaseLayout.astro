@@ -1,0 +1,38 @@
+---
+import { ViewTransitions } from 'astro:transitions'
+
+import Header from '../components/header/index.astro'
+import Sidebar from '../components/sidebar/index.astro'
+
+import '@/styles/global.css'
+
+interface Props {
+  title: string
+}
+
+const { title } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Knowledge Transfer Documentation" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <ViewTransitions />
+  </head>
+  <body
+    class="h-full bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+  >
+    <Header />
+    <div class="flex">
+      <Sidebar />
+      <main class="flex-1 p-6 md:p-8 lg:p-12">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
