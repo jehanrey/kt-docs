@@ -1,5 +1,18 @@
 ---
-const pages = await Astro.glob('../../pages/docs/*.md')
+import type { MarkdownInstance } from 'astro'
+
+interface Frontmatter {
+  title: string
+  description?: string
+}
+
+const matches = await import.meta.glob<MarkdownInstance<Frontmatter>>(
+  '../../pages/docs/*.md',
+  {
+    eager: true,
+  }
+)
+const pages = Object.values(matches)
 ---
 
 <aside class="hidden w-64 bg-gray-100 p-6 md:block dark:bg-gray-800">
