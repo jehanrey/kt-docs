@@ -1,6 +1,8 @@
 ---
-import BaseLayout from './BaseLayout.astro'
+import BaseLayout from './base.astro'
 const { minutesRead, title } = Astro.props.frontmatter
+
+// Place sidebar here? Query all content from content layer then render as sidebar links
 ---
 
 <BaseLayout title={title}>

@@ -1,8 +1,6 @@
 ---
-import { ViewTransitions } from 'astro:transitions'
-
-import Header from '../components/header/index.astro'
-import Sidebar from '../components/sidebar/index.astro'
+import Footer from '@/components/footer/index.astro'
+import Header from '@/components/header/index.astro'
 
 import '@/styles/global.css'
 
@@ -22,17 +20,16 @@ const { title } = Astro.props
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <ViewTransitions />
   </head>
   <body
-    class="h-full bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+    class="isolate flex h-screen w-screen flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100"
   >
     <Header />
-    <div class="flex">
-      <Sidebar />
-      <main class="flex-1 p-6 md:p-8 lg:p-12">
+    <main class="relative flex flex-grow flex-col overflow-auto">
+      <div class="flex grow">
         <slot />
-      </main>
-    </div>
+      </div>
+      <Footer />
+    </main>
   </body>
 </html>

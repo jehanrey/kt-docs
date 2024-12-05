@@ -1,6 +1,9 @@
 ---
-layout: ../../layouts/PostLayout.astro
-title: Introduction
+title: 'Test'
+description: 'For testing'
+author: 'rj.reyes'
+publishDate: 2024-12-05
+tags: ['test']
 ---
 
 # Introduction to Knowledge Transfer

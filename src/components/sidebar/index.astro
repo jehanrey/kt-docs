@@ -6,11 +6,11 @@ interface Frontmatter {
   description?: string
 }
 
-const matches = await import.meta.glob<MarkdownInstance<Frontmatter>>(
+const matches = import.meta.glob<MarkdownInstance<Frontmatter>>(
   '../../pages/docs/*.md',
   {
     eager: true,
-  }
+  },
 )
 const pages = Object.values(matches)
 ---
