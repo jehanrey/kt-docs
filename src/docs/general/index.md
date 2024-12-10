@@ -1,0 +1,5 @@
+---
+title: 'Index title'
+---
+
+# Title
