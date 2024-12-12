@@ -24,7 +24,7 @@ const { Content, remarkPluginFrontmatter, headings } = await render(entry)
 const lastModified = (() => {
   const commitDate = dayjs(remarkPluginFrontmatter.lastModified)
   return (commitDate.isValid() ? commitDate : dayjs()).format(
-    'HH:mm:ss DD MMMM YYYY UTC',
+    'HH:mm:ss YYYY MMM DD',
   )
 })()
 ---

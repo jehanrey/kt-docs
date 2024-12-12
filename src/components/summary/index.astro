@@ -1,6 +1,8 @@
 ---
 import type { MarkdownHeading } from 'astro'
 
+import TOC from './toc.astro'
+
 interface Props {
   headings?: Array<MarkdownHeading>
   minutesRead?: string
@@ -8,28 +10,20 @@ interface Props {
 }
 
 const { headings, minutesRead, lastModified } = Astro.props
-
-const { pathname } = Astro.url
 ---
 
-<aside class="hidden w-72 p-6 md:block">
+<aside class="hidden w-72 py-6 md:block">
   <div class="sticky top-20 self-start">
     <dl>
-      <dt>Last Updated At:</dt>
-      <dd>{lastModified}</dd>
-      <dt>Reading Time</dt>
-      <dd>{minutesRead}</dd>
-      <dt>On This Page</dt>
+      <dt class="text-sm font-medium">Last Updated</dt>
+      <dd class="text-muted-foreground">{lastModified}</dd>
+      <dt class="mt-5 text-sm font-medium">Reading Time</dt>
+      <dd class="text-muted-foreground">{minutesRead}</dd>
+      <dt class="mt-5 text-sm font-medium">On This Page</dt>
       {
         headings?.length && (
           <dd>
-            <ol>
-              {headings.map(({ text, slug }) => (
-                <li>
-                  <a href={`${pathname}#${slug}`}>{text}</a>
-                </li>
-              ))}
-            </ol>
+            <TOC headings={headings} />
           </dd>
         )
       }

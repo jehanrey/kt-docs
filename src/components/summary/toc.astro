@@ -1,0 +1,50 @@
+---
+import type { MarkdownHeading } from 'astro'
+
+import { parseClassNames } from '@/helpers/parseClassNames'
+
+interface Props {
+  headings: Array<MarkdownHeading>
+}
+
+const { headings } = Astro.props
+
+const { pathname } = Astro.url
+
+const headingsToRender = headings.filter(({ depth }) => depth <= 2)
+---
+
+<ul id="toc" class="m-0 list-none">
+  {
+    headingsToRender.map(({ depth, slug, text }) => {
+      return (
+        <li
+          class={parseClassNames('mt-0 pt-2 text-muted-foreground', [
+            'pl-4',
+            depth !== 1,
+          ])}
+        >
+          <a href={`${pathname}#${slug}`}>{text}</a>
+        </li>
+      )
+    })
+  }
+</ul>
+
+<!-- <script>
+  function highlightActiveFragment() {
+    const currentUrl = `${location.pathname}${location.hash}`
+    const toc = document.querySelector('ul#toc')
+    toc?.querySelectorAll('a').forEach((anchor) => {
+      anchor.classList.remove('text-primary')
+    })
+    const activeHeading = toc?.querySelector(
+      `a[href^="${currentUrl}"][href$="${currentUrl}"]`,
+    )
+    activeHeading?.classList.add('text-primary')
+  }
+
+  highlightActiveFragment()
+
+  document.addEventListener('astro:page-load', highlightActiveFragment)
+</script> -->
