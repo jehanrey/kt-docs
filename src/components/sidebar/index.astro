@@ -1,4 +1,5 @@
 ---
+import { BASE } from '@/helpers/constants'
 import { parseClassNames } from '@/helpers/parseClassNames'
 import type { NavigationItem } from '@/types'
 
@@ -22,12 +23,13 @@ const { pathname } = Astro.url
             </h4>
             <div class="grid grid-flow-row auto-rows-max text-sm">
               {children?.map(({ display, route }) => {
+                const href = `${BASE}${route}`
                 return (
                   <a
-                    href={route}
+                    href={href}
                     class={parseClassNames(
                       'flex w-full items-center rounded-md p-2 hover:underline',
-                      ['bg-muted', pathname === route],
+                      ['bg-muted', pathname === href],
                     )}
                   >
                     {display}

@@ -1,4 +1,6 @@
 ---
+import { BASE } from '@/helpers/constants'
+
 import Theme from './theme.astro'
 ---
 
@@ -6,7 +8,9 @@ import Theme from './theme.astro'
   <div
     class="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
   >
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">KT Docs</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <a href={BASE}>KT Docs</a>
+    </h1>
     <Theme />
   </div>
 </header>
