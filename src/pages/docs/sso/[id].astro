@@ -23,9 +23,7 @@ const { Content, remarkPluginFrontmatter, headings } = await render(entry)
 
 const lastModified = (() => {
   const commitDate = dayjs(remarkPluginFrontmatter.lastModified)
-  return (commitDate.isValid() ? commitDate : dayjs()).format(
-    'HH:mm:ss YYYY MMM DD',
-  )
+  return (commitDate.isValid() ? commitDate : dayjs()).format('D MMM YYYY')
 })()
 ---
 
@@ -33,7 +31,7 @@ const lastModified = (() => {
   title={entry.data.title}
   minutesRead={remarkPluginFrontmatter.minutesRead}
   lastModified={lastModified}
-  headings={headings.filter(({ depth }) => depth <= 2)}
+  headings={headings}
 >
   <Content />
 </Post>
