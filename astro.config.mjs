@@ -10,6 +10,8 @@ import { remarkReadingTime } from './src/lib/markdown/remark-reading-time.mjs'
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://jehanrey.github.io',
+  base: 'kt-docs',
   integrations: [tailwind(), preact(), mdx()],
   markdown: {
     shikiConfig: {
