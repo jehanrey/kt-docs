@@ -1,8 +1,8 @@
 ---
-import type { CollectionEntry } from 'astro:content'
-import { getCollection, render } from 'astro:content'
+import { type CollectionEntry, getCollection, render } from 'astro:content'
+import dayjs from 'dayjs'
 
-import Base from '@/layouts/base.astro'
+import Post from '@/layouts/post.astro'
 
 export async function getStaticPaths() {
   const ssoEntries = await getCollection('sso')
@@ -19,9 +19,21 @@ interface Props {
 }
 
 const entry = Astro.props.entry
-const { Content } = await render(entry)
+const { Content, remarkPluginFrontmatter, headings } = await render(entry)
+
+const lastModified = (() => {
+  const commitDate = dayjs(remarkPluginFrontmatter.lastModified)
+  return (commitDate.isValid() ? commitDate : dayjs()).format(
+    'HH:mm:ss DD MMMM YYYY UTC',
+  )
+})()
 ---
 
-<Base title={entry.data.author}>
+<Post
+  title={entry.data.title}
+  minutesRead={remarkPluginFrontmatter.minutesRead}
+  lastModified={lastModified}
+  headings={headings.filter(({ depth }) => depth <= 2)}
+>
   <Content />
-</Base>
+</Post>

@@ -4,6 +4,7 @@ import { defineCollection, z } from 'astro:content'
 const sso = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/docs/sso' }),
   schema: z.object({
+    title: z.string(),
     author: z.string(),
   }),
 })
