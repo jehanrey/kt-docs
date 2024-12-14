@@ -1,10 +1,17 @@
 ---
-import Code from '../components/code.astro'
-import Test from '../components/test.tsx'
+import { baseHref } from '@/helpers/href'
+
 import BaseLayout from '../layouts/base.astro'
+
+// take inspiration from astro starlight home page
+
+// remove footer from the base layout?
 ---
 
-<BaseLayout title="KT Docs">
-  <Test client:load />
-  <Code />
+<BaseLayout title="KT Docs" footer={false}>
+  <div class="flex w-full grow flex-col items-center justify-center">
+    <a href={baseHref('/wiki')}>
+      <button>Get Started</button>
+    </a>
+  </div>
 </BaseLayout>

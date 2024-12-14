@@ -1,0 +1,31 @@
+---
+import type { MarkdownHeading } from 'astro'
+
+import Details from '@/components/details-aside/index.astro'
+import Navigation from '@/components/navigation-aside/index.astro'
+import Prose from '@/components/prose/index.astro'
+import type { NavigationItem } from '@/types'
+
+interface Props {
+  navItems?: Array<NavigationItem>
+  lastModified: string
+  minutesRead: string
+  headings?: Array<MarkdownHeading>
+}
+
+const { navItems, lastModified, minutesRead, headings } = Astro.props
+---
+
+<div class="container relative flex w-full grow gap-10">
+  {navItems?.length && <Navigation items={navItems} />}
+  <div class="md-content grow py-6">
+    <Prose>
+      <slot />
+    </Prose>
+  </div>
+  <Details
+    minutesRead={minutesRead}
+    lastModified={lastModified}
+    headings={headings}
+  />
+</div>

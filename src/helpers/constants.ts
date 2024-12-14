@@ -1,1 +1,1 @@
-export const BASE = '/kt-docs'
+export const BASE = import.meta.env.BASE_URL

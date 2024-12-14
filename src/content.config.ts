@@ -1,19 +1,16 @@
 import { glob } from 'astro/loaders'
 import { defineCollection, z } from 'astro:content'
 
-const sso = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/docs/sso' }),
+import { categories } from '@/wiki/authentication/constants'
+
+const authentication = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/wiki/authentication' }),
   schema: z.object({
     title: z.string(),
-    author: z.string(),
+    description: z.string(),
+    category: z.enum(categories),
+    order: z.number(),
   }),
 })
 
-const general = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/docs/general' }),
-  schema: z.object({
-    title: z.string(),
-  }),
-})
-
-export const collections = { sso, general }
+export const collections = { authentication }

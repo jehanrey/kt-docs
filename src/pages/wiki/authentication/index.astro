@@ -1,0 +1,15 @@
+---
+import { getCollection } from 'astro:content'
+
+import { baseHref } from '@/helpers/href'
+
+const authCollection = await getCollection('authentication')
+
+if (authCollection.at(0)?.id) {
+  return Astro.rewrite(
+    baseHref(`/wiki/authentication/${authCollection.at(0).id}`)
+  )
+}
+
+return Astro.rewrite(baseHref('/wiki'))
+---
