@@ -1,9 +1,8 @@
 ---
-import { getCollection } from 'astro:content'
-
 import { baseHref } from '@/helpers/href'
+import { getSortedAuthCollection } from '@/helpers/loaders'
 
-const authCollection = await getCollection('authentication')
+const authCollection = await getSortedAuthCollection()
 
 if (authCollection.at(0)?.id) {
   return Astro.rewrite(
