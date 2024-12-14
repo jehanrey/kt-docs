@@ -6,7 +6,7 @@ import { getCategorizedAuthCollection } from '@/helpers/loaders'
 import Base from '@/layouts/base.astro'
 import Wiki from '@/layouts/wiki.astro'
 import type { NavigationItem } from '@/types'
-import { categoryDisplay, type Category } from '@/wiki/authentication/constants'
+import { config, type Category } from '@/wiki/authentication/constants'
 
 export async function getStaticPaths() {
   const authEntries = await getCollection('authentication')
@@ -36,7 +36,7 @@ const authNavigation: Array<NavigationItem> = Object.entries(
   await getCategorizedAuthCollection()
 ).map(([category, entries]) => {
   return {
-    display: categoryDisplay[category as Category],
+    display: config[category as Category],
     path: '/wiki/authentication',
     children: entries.map(({ id, title }) => ({
       display: title,
