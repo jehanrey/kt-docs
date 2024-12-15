@@ -5,51 +5,35 @@ category: 'core'
 order: 1
 ---
 
-## What is SSO?
+# SSO Overview
 
-Single Sign-On (SSO) is an authentication method that allows users to access multiple applications with a single set of credentials.
+## Introduction
 
-## Our SSO Architecture
+- Definition of Single Sign-On (SSO)
+- Core objectives of SSO
+- Benefits for the organization
 
-### Key Components
+## Authentication Fundamentals
+
+- What is authentication?
+- Different authentication methods
+- Why SSO is superior to traditional login methods
+
+## SSO Concepts
 
 - Identity Provider (IdP)
-- Service Providers (SPs)
-- Authentication Protocols
+- Service Provider (SP)
+- Authentication tokens
+- Claims and assertions
 
-## Authentication Flows
+## Use Cases
 
-### SAML 2.0 Flow
+- Enterprise applications
+- Cloud service integration
+- Cross-platform access
 
-1. User attempts to access an application
-2. Application redirects to Identity Provider
-3. User authenticates with IdP
-4. IdP generates authentication assertion
-5. User is redirected back to the application with valid credentials
+## Our Organization's SSO Strategy
 
-### OAuth 2.0 / OpenID Connect Flow
-
-1. User clicks "Login"
-2. Redirected to centralized authentication server
-3. Credentials validated
-4. Access token and/or ID token issued
-5. Application validates token
-
-## Implemented Providers
-
-- Azure AD
-- Okta
-- Google Workspace
-
-## Security Considerations
-
-- Multi-Factor Authentication (MFA)
-- Token Validation
-- Session Management
-- Credential Rotation
-
-## Troubleshooting Common Issues
-
-- Login Redirects
-- Token Validation Failures
-- Permissions Synchronization
+- Overall authentication philosophy
+- Key security priorities
+- Integration approach
