@@ -13,9 +13,14 @@ order: 2
 
 ## Implementation
 
+### Environment Variables
+
+We need to define the values that we will be using within our SSO config. Since we are deploying to multiple environments, we can utilize environment variables for us to be able to seamlessly change config values depending on the environment we're deploying to.
+
+Firstly, we can declare the `client_id`, `redirect_uri`, and the host url registered to ADSSO inside our `.env` file. Here's what our `.env.development` file would look like:
+
 ```
 ADFS_URL = https://sts-dev.secsso.net
-ADFS_LOGOUT_URL = https://sts-dev.secsso.net/adfs/ls/?wa=wsignoutcleanup1.0
 ADFS_AUTH_URL = /adfs/oauth2/authorize/
 ADFS_CLIENT_ID = b0bd57c1-6ddf-406f-92c2-19cdf76519ff
 REDIRECT_URL = https://seoul-scouter-portals.samsungdiroute.net/api/login-callback
@@ -27,16 +32,143 @@ const CLIENT_ID = `${process.env.ADFS_CLIENT_ID}`
 const REDIRECT_URL = `${process.env.REDIRECT_URL}`
 ```
 
+### Request URL
+
+Once our environment variables have been set, we can set the values as url params to create the SSO request url.
+
 ```ts
 const ssoUrl = `${BASE_URL}?${new URLSearchParams({
   client_id: CLIENT_ID,
-  redirect_uri: `${REDIRECT_URL}?${new URLSearchParams({ prevPath, sbc })}`,
+  redirect_uri: `${REDIRECT_URL}?${new URLSearchParams({ prevPath })}`,
   response_mode: 'form_post',
   response_type: 'id_token',
   scope: 'openid',
   nonce: generateId(),
 })}`
-res.redirect(ssoUrl)
 ```
 
 ## Login Flow
+
+### Middleware
+
+Scouter employs an authentication system that leverages http-only cookies to maintain user state. We makes use of `middleware.ts` to validate the the cookies of incoming requests. When an incoming request do not contain the valid tokens, it is redirected to `/api/login` to trigger the login flow.
+
+```ts
+const middleware = async (request: NextRequest) => {
+  const accessToken = request.cookies.get(ACCESS_TOKEN)
+  const idToken = request.cookies.get(ID_TOKEN)
+  const url = request.nextUrl.clone()
+  const { pathname, search } = request.nextUrl
+
+  if (!validateAccessToken(accessToken?.value)) {
+    url.searchParams.set('prevPath', `${pathname}${search}`)
+    if (!idToken?.value) {
+      url.pathname = '/api/login'
+    } else {
+      url.searchParams.set('reason', 'session')
+      url.pathname = `/logged-out`
+    }
+    return NextResponse.redirect(url)
+  }
+
+  return request
+}
+
+export const config = {
+  matcher: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+}
+```
+
+### Login
+
+The request is redirected to the SSO login page through the SSO request url with the appropriate url params.
+
+```ts
+const handler = (req: NextApiRequest, res: NextApiResponse) => {
+  clearTokens(res)
+
+  const prevPathValue = req.query.prevPath
+  const prevPath =
+    (Array.isArray(prevPathValue) ? prevPathValue[0] : prevPathValue) ?? ''
+
+  const ssoUrl = `${BASE_URL}?${new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: `${REDIRECT_URL}?${new URLSearchParams({ prevPath })}`,
+    response_mode: 'form_post',
+    response_type: 'id_token',
+    scope: 'openid',
+    nonce: generateId(),
+  })}`
+
+  res.redirect(ssoUrl)
+  return
+}
+```
+
+### Callback
+
+After a successful login to ADSSO, we are redirected to the `redirect_uri`, which is a `POST` request to `/api/login`. The request `body` should contain the JWT `id_token` which contains the user's claims.
+
+```ts
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  const accessToken = req.body.id_token
+  const accessTokenCookie = serializeAccessToken(accessToken)
+  let loggedInUser: ScouterUser | undefined
+  try {
+    loggedInUser = await post<ScouterUser>(userLogin, undefined, {
+      access_token: accessToken,
+    })
+  } catch (err: any) {
+    if (err.code !== 4010) {
+      res.status(500).send({ code: 5000 })
+      return
+    }
+  }
+  const serializedIdToken = loggedInUser
+    ? serializeIdToken(loggedInUser.id)
+    : undefined
+  const cookiesToSet = [accessTokenCookie, serializedIdToken].filter(
+    Boolean,
+  ) as Array<string>
+  res.setHeader('Set-Cookie', cookiesToSet)
+
+  const prevPathValue = req.query.prevPath
+  const prevPath =
+    (Array.isArray(prevPathValue) ? prevPathValue[0] : prevPathValue) ?? ''
+  const nextPath = prevPath || '/home'
+
+  res.redirect(303, nextPath)
+  return
+}
+```
+
+### Cookies
+
+Both the JWT from the SSO request body as well as the user's Scouter id are serialized and stored as cookies.
+
+```ts
+const serializeAccessToken = (accessToken: string) => {
+  const { exp } = parseAccessToken(accessToken) as ADFSUser
+  const cookie = serialize(ACCESS_TOKEN, accessToken, {
+    expires: new Date(exp * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    sameSite: 'lax',
+  })
+  return cookie
+}
+
+const serializeIdToken = (idToken: string) => {
+  const cookie = serialize(ID_TOKEN, idToken, {
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    sameSite: 'lax',
+  })
+  return cookie
+}
+```
+
+When the cookies have been set, the user is then routed to appropriate page.

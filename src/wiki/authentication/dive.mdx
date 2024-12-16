@@ -132,7 +132,7 @@ const parseConditions = (getAssertionXml?: Profile['getAssertionXml']) => {
 
 ### Auth Guard
 
-The login flow begins with the `<AuthGuard />` component that wraps the application. After mounting, a client-side query is triggered to check the cookies for a valid token. When a valid token is found, we will proceed to render the rest of the applcation. When no valid token is found, the user will be redirected to `/api/login` route.
+The login flow begins inside the `<AuthGuard />` component that wraps the application. After mounting, a client-side query is triggered to check the cookies for a valid token. When a valid token is found, the rest of the applcation proceeds rendering. When no valid token is found, the user will be redirected to `/api/login` route.
 
 ```ts
 const AuthGuard = ({ children }: { children: ReactNode }) => {
@@ -171,6 +171,11 @@ const router = createRouter<NextApiRequest, NextApiResponse>()
 ```ts
 router.get(
   (req, res, next) => {
+    const prevPath = (req.query.prevPath as string) ?? '/'
+    const searchParams = new URLSearchParams({ prevPath })
+    const strategy = createStrategy({
+      callbackUrl: `${callbackUrl}?${searchParams}`,
+    })
     passport.authenticate(strategy)(req, res, next)
   },
   (_req, res) => {
@@ -181,25 +186,27 @@ router.get(
 
 ### Callback
 
+After logging on to ADSSO, we can extract the claims from the SAML response.
+
 ```ts
 router.post(async (req, res) => {
   const {
     query: { prevPath },
   } = req
   try {
-    const { token } = await new Promise<{
+    const { token, country } = await new Promise<{
       token: string
+      country: string
     }>((resolve, reject) => {
-      passport.authenticate(strategy, (error, profile) => {
+      passport.authenticate(createStrategy(), (error, profile) => {
         if (error) reject(error)
         resolve(profile)
       })(req, res)
     })
-    const authCookie = serializeToken(token)
-    res.setHeader('Set-Cookie', authCookie)
-    post('/user/page=LOGIN', undefined, {
-      Authorization: `Bearer ${token}`,
-    })
+    const authToken = serializeAuthToken(token)
+    const userToken = serializeUserToken(country)
+    const cookies = [authToken, userToken].filter(Boolean) as Array<string>
+    res.setHeader('Set-Cookie', cookies)
     return res.redirect(303, prevPath as string)
   } catch (err) {
     return res.status(500).end((err as Error).message)
