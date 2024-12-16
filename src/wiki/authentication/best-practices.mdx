@@ -9,4 +9,72 @@ order: 3
 
 ## Security Recommendations
 
-- Multi-factor authentication - point to MFA PR by Mr. Kyoungyoup
+### Multi-Factor Authentication
+
+For more details, please refer to the MFA POC branch created by Mr. Kyoungyoup Park [here](https://github.sec.samsung.net/UAP/dh-backend/commit/afe643492c03ab9583b2afb488ac49fbd78a0519).
+
+Generate the request url with the appropriate values.
+
+```java
+private String buildAdfsAuthUrl() {
+    return ssoConfig.getIdpUrl()
+        + "?client_id=" + ssoConfig.getIdpClientId()
+        + "&redirect_uri=" + ssoConfig.getSpAcsUrl()
+        + "&response_mode=form_post"
+        + "&response_type=code+id_token"
+        + "&scope=openid+profile"
+        + "&nonce=" + UUID.randomUUID();
+}
+```
+
+To trigger the login flow, redirect the request to the created request URL.
+
+```java
+@GetMapping("/sso/login")
+public ResponseEntity<Object> loginUser() throws URISyntaxException {
+    URI redirectUri = new URI(buildAdfsAuthUrl());
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setLocation(redirectUri);
+    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+}
+```
+
+On the callback for the login request, redirect the request to `/External/SecondAuth` together with the JWT from the IdP.
+
+```java
+@PostMapping(value = "/sso/callback", produces = MediaType.APPLICATION_JSON_VALUE)
+public ResponseEntity<String> loginCallback() throws Exception {
+    String token = getTokenFromRequestBody()
+    URI mfaUri = new URIBuilder("https://mfa-dev.secsso.net/External/SecondAuth")
+        .addParameter("jwtTokenRequest", token)
+        .build();
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setLocation(mfaUri);
+    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+}
+```
+
+On the callback for the second auth request, verify the JWT from the request body.
+
+```java
+@PostMapping("/mfa/response")
+public ResponseEntity<Object> mfaResponse(MFAResponse mfaResponse) throws URISyntaxException {
+    String token = mfaResponse.getJwtTokenResponse();
+
+    JWSVerifier verifier = null;
+    try {
+        verifier = new MACVerifier(mfaConfig.getSigningKey());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        signedJWT.verify(verifier);
+        log.debug(signedJWT.getPayload().toString());
+    } catch (JOSEException | ParseException e) {
+        log.error(e.getMessage());
+        throw new RuntimeException(e);
+    }
+
+    URI redirectUri = new URI("/landing-page");
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setLocation(redirectUri);
+    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+}
+```

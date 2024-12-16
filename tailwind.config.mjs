@@ -16,7 +16,7 @@ export default {
       typography: {
         DEFAULT: {
           css: {
-            maxWidth: '75ch',
+            maxWidth: '40vw',
             'code::before': { content: 'none' },
             'code::after': { content: 'none' },
             code: {
