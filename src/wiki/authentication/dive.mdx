@@ -7,8 +7,210 @@ order: 1
 
 # DIVE SSO Implementation
 
-## Tools
+## Libraries
 
-- Passport
-- Passport Node SAML
-- Next Connect
+- [passport](https://www.npmjs.com/package/passport)
+- [@node-saml/passport-saml](https://www.npmjs.com/package/@node-saml/passport-saml)
+- [next-connect](https://www.npmjs.com/package/next-connect)
+
+## Implementation
+
+### SAML config
+
+First, we define the SAML config inside `lib/passport/strategy.ts`
+
+We need to define the values that we will be using within our SAML config. Since we are supporting multiple environments, we can make use of environment variables for us to be able to seamlessly change config values depending on the environment we're in.
+
+Firstly, we can declare our `entryPoint`, `logoutUrl`, `callbackUrl`, and `issuer` inside our `.env` file. In this case, here's what our `.env.development` would look like:
+
+```
+AUTH_LOGIN_URL = https://sts-dev.secsso.net/adfs/ls
+AUTH_LOGOUT_URL = https://sts-dev.secsso.net/adfs/ls/?wa=wsignoutcleanup1.0
+AUTH_ISSUER = https://dive-dev.bigdata.samsung.com
+AUTH_CALLBACK = https://dive-dev.bigdata.samsung.com/api/login
+```
+
+The `cert` that we will use is stored within the repository. We just need to set an environment variable containing the filename, then we can retrieve the content using `fs`.
+
+```
+IDP_CERT = lib/certs/sts-dev.secsso.net.pem
+```
+
+```ts
+const fpath = path.join(process.env.PWD || '', process.env.IDP_CERT || '')
+const idpCert = fs.readFileSync(fpath, 'utf8')
+```
+
+Then we'll have our completed SAML config.
+
+```ts
+const samlConfig: SamlConfig = {
+  entryPoint: `${process.env.AUTH_LOGIN_URL}`,
+  logoutUrl: `${process.env.AUTH_LOGOUT_URL}`,
+  callbackUrl: `${process.env.AUTH_CALLBACK}`,
+  issuer: `${process.env.AUTH_ISSUER}`,
+  cert: idpCert,
+  identifierFormat: null,
+  acceptedClockSkewMs: -1,
+  wantAuthnResponseSigned: false,
+  passReqToCallback: false,
+}
+```
+
+### SAML strategy
+
+We'll set up our SAML `Strategy` which we will be using throughout the authentication process.
+
+```ts
+const strategy = new Strategy(samlConfig, signonVerify, signoutVerify)
+```
+
+We will need to provide a `signonVerify` and `signoutVerify` callbacks to our SAML strategy. These functions typically contain logic to validate the authenticity of a user's login or logout request.
+
+The `signonVerify` receives the `Profile` that will be returned by the IdP as well as a function that we can call to continue once we're done.
+
+```ts
+const signonVerify: VerifyWithoutRequest = async (profile, done) => {
+  const user = parseProfile(profile)
+  done(null, data)
+}
+```
+
+### Extracting user data from profile
+
+We can extract the user's claims from the `profile` object.
+
+```ts
+const parseProfile = (profile?: Profile | null): ADSSOUserAndExpiry => {
+  const user = parseUser(profile?.attributes as Record<string, string>)
+  const expiry =
+    parseConditions(profile?.getAssertionXml) ?? Date.now().toString()
+  return {
+    ...user,
+    expiry,
+  }
+}
+```
+
+The SAML claims are stored as key-value pairs within `profile.attributes`.
+
+```ts
+const parseUser = (attributes?: Record<string, string>) => {
+  const getClaimsValue = (key: string) => {
+    const claimsKey = 'http://schemas.sec.com/2018/05/identity/claims'
+    return attributes?.[`${claimsKey}/${key}`] ?? ''
+  }
+  return {
+    loginId: getClaimsValue('LoginId'),
+    compId: getClaimsValue('CompId'),
+    deptId: getClaimsValue('DeptId'),
+    sOrgId: getClaimsValue('SOrgId'),
+    mail: getClaimsValue('Mail'),
+    compName: getClaimsValue('CompName'),
+    deptName: getClaimsValue('DeptName'),
+    username: getClaimsValue('Username'),
+    userNameEn: getClaimsValue('UserName_EN'),
+    compNameEn: getClaimsValue('CompName_EN'),
+    deptNameEn: getClaimsValue('DeptName_EN'),
+    country: getClaimsValue('Country'),
+  }
+}
+```
+
+In addition to the claims, we also extract the expiry from the `NotOnOrAfter` attribute of the asserton XML. This will tell us how long the assertion is valid.
+
+```ts
+const parseConditions = (getAssertionXml?: Profile['getAssertionXml']) => {
+  const assertionXml = getAssertionXml?.() ?? ''
+  const conditions = assertionXml.match(elementRegex('Conditions'))?.at(0)
+  const expiry = conditions?.match(attributeRegex('NotOnOrAfter'))?.at(1)
+  return expiry
+}
+```
+
+## Login Flow
+
+The login flow begins with the `<AuthGuard />` component that wraps the application. After mounting, a client-side query is triggered to check the cookies for a valid token. When a valid token is found, we will proceed to render the rest of the applcation. When no valid token is found, the user will be redirected to `/api/login` route.
+
+```ts
+const AuthGuard = ({ children }: { children: ReactNode }) => {
+  const { pathname, replace } = useRouter();
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['token'],
+    queryFn: () => get<string>('/api/token'),
+  });
+
+  useEffect(() => {
+    refetch();
+  }, [pathname]);
+
+  if (isLoading) return <Spinner />;
+
+  if (data === undefined) {
+    replace('/api/login', undefined, { locale: 'kr' });
+    return <Spinner />;
+  }
+
+  return <>{children}</>;
+}
+```
+
+We need a `GET` request to initaite the SSO, and a `POST` callback to handle SAML response.
+
+We make use of `next-connect` to provide a middleware layer for our API route.
+
+```ts
+const router = createRouter<NextApiRequest, NextApiResponse>()
+```
+
+```ts
+router.get(
+  (req, res, next) => {
+    passport.authenticate(strategy)(req, res, next)
+  },
+  (_req, res) => {
+    return res.status(200).end()
+  },
+)
+```
+
+```ts
+router.post(async (req, res) => {
+  const {
+    query: { prevPath },
+  } = req
+  try {
+    const { token } = await new Promise<{
+      token: string
+    }>((resolve, reject) => {
+      passport.authenticate(strategy, (error, profile) => {
+        if (error) reject(error)
+        resolve(profile)
+      })(req, res)
+    })
+    const authCookie = serializeToken(token)
+    res.setHeader('Set-Cookie', authCookie)
+    post('/user/page=LOGIN', undefined, {
+      Authorization: `Bearer ${token}`,
+    })
+    return res.redirect(303, prevPath as string)
+  } catch (err) {
+    return res.status(500).end((err as Error).message)
+  }
+})
+```
+
+We attach a cookie to the response of the `POST` request. This will be our identifier that the user is authenticated.
+
+```ts
+const serializeToken = (token: string) => {
+  const cookie = serialize(TOKEN_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    sameSite: 'lax',
+  })
+  return cookie
+}
+```

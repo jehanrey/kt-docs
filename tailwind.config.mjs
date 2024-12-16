@@ -13,6 +13,21 @@ export default {
       },
     },
     extend: {
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: '90ch',
+            'code::before': { content: 'none' },
+            'code::after': { content: 'none' },
+            code: {
+              backgroundColor: 'hsl(var(--muted))',
+              color: 'hsl(var(--muted-foreground))',
+              borderRadius: '4px',
+              padding: '0.2em 0.4em',
+            },
+          },
+        },
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

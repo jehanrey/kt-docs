@@ -1,0 +1,215 @@
+---
+title: 'DIR (NextJS)'
+description: 'SSO implementation example for DIR (NextJS PoC)'
+category: 'example'
+order: 4
+---
+
+# DIR PoC (NextJS) SSO Implementation
+
+## Libraries
+
+- [@node-saml/node-saml](https://www.npmjs.com/package/@node-saml/node-saml)
+
+## Implementation
+
+We need to define the values that we will be using within our SAML config. Since we are deploying to multiple environments, we can utilize environment variables for us to be able to seamlessly change config values depending on the environment we're deploying to.
+
+Firstly, we can declare our `entryPoint`, `callbackUrl`, `logoutUrl`, `issuer`, and `idpCert` inside our `.env` file. In this case, here's what our `.env.development` would look like:
+
+```
+ENTRY_POINT = https://sts-dev.secsso.net/adfs/ls
+CALLBACK_URL = https://seoul-dir-portals.samsungdiroute.net/api/login
+ISSUER = https://seoul-dir-portals.samsungdiroute.net/
+LOGOUT_URL = https://sts-dev.secsso.net/adfs/ls/?wa=wsignoutcleanup1.0
+IDP_CERT = MII***
+```
+
+This is our completed SAML config which we will use later to integrate within our login flow.
+
+```ts
+const saml = new SAML({
+  entryPoint: process.env.ENTRY_POINT ?? '',
+  callbackUrl: process.env.CALLBACK_URL ?? '',
+  logoutUrl: process.env.LOGOUT_URL ?? '',
+  issuer: process.env.ISSUER ?? '',
+  idpCert: process.env.IDP_CERT ?? '',
+  identifierFormat: null,
+  wantAuthnResponseSigned: false,
+  acceptedClockSkewMs: -1,
+})
+```
+
+## Login Flow
+
+DIR employs an authentication system that leverages http-only cookies to maintain user state. We makes use of `middleware.ts` to validate the the cookies of incoming requests. When an incoming request do not contain the valid tokens, the requests are redirected to `/api/login` to trigger the login flow.
+
+```ts
+const middleware = async (request: NextRequest) => {
+  const { cookies, nextUrl } = request
+  const clonedUrl = nextUrl.clone()
+  const { pathname, search } = clonedUrl
+
+  const userToken = cookies.get(KEYS.user)
+  const authToken = cookies.get(KEYS.auth)
+  const invalidTokens = !userToken?.value || !authToken?.value
+  if (invalidTokens) {
+    clonedUrl.pathname = '/api/login'
+    clonedUrl.searchParams.set('relayState', `${pathname}${search}`)
+    return NextResponse.redirect(clonedUrl)
+  }
+
+  return request
+}
+
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+  ],
+}
+```
+
+The request is redirected to the SSO login page through the SAML url which is generated using the config that we defined [earlier](#implementation).
+
+```ts
+const GET = async (request: NextRequest) => {
+  const nextUrl = request.nextUrl.clone()
+  const relayState = nextUrl.searchParams.get('relayState')
+  let loginUrl = ''
+  try {
+    loginUrl = await saml.getAuthorizeUrlAsync(relayState ?? '/', undefined, {})
+  } catch (err) {
+    const message = 'Error generating SAML request'
+    console.error(message, err)
+    return NextResponse.json({ message })
+  }
+  redirect(loginUrl)
+}
+```
+
+After a successful login to the IdP, we are redirected to the `callbackUrl`, which is a `POST` request to `/api/login`. The request `body` should contain the user profile from the IdP, which we can parse to extract the data that we need.
+
+```ts
+const POST = async (request: NextRequest) => {
+  let nextUrl = '/'
+  try {
+    const formData = await request.formData()
+    const body = Object.fromEntries(formData) as Record<string, string>
+    if (body.RelayState) nextUrl = body.RelayState
+    const { profile } = await saml.validatePostResponseAsync(body)
+    const adfsUser = parseProfile(profile)
+    const authToken = await getAuthToken(adfsUser)
+    setUser(adfsUser)
+    setAuth(authToken)
+  } catch (err) {
+    const message = 'SAML validation failed'
+    console.error(message, err)
+    return NextResponse.json({ message }, { status: 401 })
+  }
+  redirect(nextUrl)
+}
+```
+
+We can extract the user's claims as well as the session expiry from the `profile` object.
+
+```ts
+function parseProfile(profile?: Profile | null): ADFSUserWithExpiry {
+  const user = parseClaims(profile?.attributes as Record<string, string>)
+  const expiry =
+    parseConditions(profile?.getAssertionXml) ?? Date.now().toString()
+  return {
+    ...user,
+    expiry,
+  }
+}
+```
+
+The SAML claims are stored as key-value pairs within `profile.attributes`.
+
+```ts
+function parseClaims(
+  attributes: Record<`${typeof CLAIMS_KEY}/${string}`, string>,
+): ADFSUser {
+  const getValue = (key: string) => attributes[`${CLAIMS_KEY}/${key}`]
+  return {
+    loginId: getValue('LoginId'),
+    compId: getValue('CompId'),
+    deptId: getValue('DeptId'),
+    sOrgId: getValue('SOrgId'),
+    mail: getValue('Mail'),
+    compName: getValue('CompName'),
+    deptName: getValue('DeptName'),
+    username: getValue('Username'),
+    userNameEn: getValue('UserName_EN'),
+    compNameEn: getValue('CompName_EN'),
+    deptNameEn: getValue('DeptName_EN'),
+  }
+}
+```
+
+In addition to the claims, we also extract the `expiry` from the `NotOnOrAfter` attribute of the asserton XML. This will tell us how long the assertion is valid.
+
+```ts
+function parseConditions(getAssertionXml?: Profile['getAssertionXml']) {
+  const assertionXml = getAssertionXml?.() ?? ''
+  const conditions = assertionXml.match(elementRegex('Conditions'))?.at(0)
+  const expiry = conditions?.match(attributeRegex('NotOnOrAfter'))?.at(1)
+  return expiry
+}
+```
+
+DIR employs an API security layer which requires the user to log in to the API server and receive a JWT token. This token is specific to the user and the requested role.
+
+At this point we only know the details provided by the IdP and nothing yet about the user's role access within DIR so we will temporarily request for a `guest` token. Once we have a `guest` token, we can use it to make a request about the user's details within DIR using `POST` `/api/v1/auth/token`. If the user exists within DIR, we use the `info.role` from the response to request a token with the appropriate role. If the user does not exist, we retain the `guest` token.
+
+```ts
+async function getAuthToken(profile: ADFSUser) {
+  const headers = {
+    Authorization: undefined,
+    'client-id': CLIENT_ID,
+    'client-key': CLIENT_KEY,
+  } as HeadersInit
+  const guestToken = await api.post<AuthToken>(
+    '/api/v1/auth/token',
+    {
+      loginId: profile.loginId,
+      role: 'guest',
+    },
+    { headers },
+  )
+  const user = await postUser(profile, guestToken.token)
+  const authToken = !isEmpty(user)
+    ? await api.post<AuthToken>(
+        '/api/v1/auth/token',
+        {
+          loginId: profile.loginId,
+          role: user.info.role.toLowerCase(),
+        },
+        { headers },
+      )
+    : guestToken
+  return authToken.token
+}
+```
+
+When both user details and api auth token have been retrieved, we will attach these values to the cookies. We create a JWT from the user details that we received from the IdP, setting the parsed `expiry` as the cookie's expiration. We don't need to set an expiration to the auth token as this is managed by the BE server.
+
+```ts
+function setUser(parsedProfile: ADFSUserWithExpiry) {
+  const { expiry, ...user } = parsedProfile
+  const token = jwt.sign({ user }, SECRET_KEY)
+  const cookieStore = cookies()
+  cookieStore.set(KEYS.user, token, {
+    ...COMMON_OPTIONS,
+    expires: new Date(expiry),
+  })
+  return token
+}
+
+function setAuth(token: string) {
+  const cookieStore = cookies()
+  cookieStore.set(KEYS.auth, token, COMMON_OPTIONS)
+}
+```
+
+When both cookies are attached to the request body, the user is then routed to appropriate page.

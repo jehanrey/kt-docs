@@ -7,6 +7,36 @@ order: 2
 
 # Scouter SSO Implementation
 
-## Tools
+## Libraries
 
-- OIDC
+- None
+
+## Implementation
+
+```
+ADFS_URL = https://sts-dev.secsso.net
+ADFS_LOGOUT_URL = https://sts-dev.secsso.net/adfs/ls/?wa=wsignoutcleanup1.0
+ADFS_AUTH_URL = /adfs/oauth2/authorize/
+ADFS_CLIENT_ID = b0bd57c1-6ddf-406f-92c2-19cdf76519ff
+REDIRECT_URL = https://seoul-scouter-portals.samsungdiroute.net/api/login-callback
+```
+
+```ts
+const BASE_URL = `${process.env.ADFS_URL}${process.env.ADFS_AUTH_URL}`
+const CLIENT_ID = `${process.env.ADFS_CLIENT_ID}`
+const REDIRECT_URL = `${process.env.REDIRECT_URL}`
+```
+
+```ts
+const ssoUrl = `${BASE_URL}?${new URLSearchParams({
+  client_id: CLIENT_ID,
+  redirect_uri: `${REDIRECT_URL}?${new URLSearchParams({ prevPath, sbc })}`,
+  response_mode: 'form_post',
+  response_type: 'id_token',
+  scope: 'openid',
+  nonce: generateId(),
+})}`
+res.redirect(ssoUrl)
+```
+
+## Login Flow

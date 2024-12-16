@@ -1,0 +1,142 @@
+---
+title: 'DIR (Remix)'
+description: 'SSO implementation example for DIR (Remix PoC)'
+category: 'example'
+order: 3
+---
+
+# DIR PoC (Remix) SSO Implementation
+
+## Libraries
+
+- [samlify](https://www.npmjs.com/package/samlify)
+
+## Implementation
+
+```
+METADATA = https://sts-dev.secsso.net/federationmetadata/2007-06/federationmetadata.xml
+HOSTNAME = https://seoul-dir-portals.samsungdiroute.net/
+API_URL = https://seoul-dir-portals.samsungdiroute.net/apis
+```
+
+```ts
+const getIdp = async () => {
+  const metadata = await fetch(METADATA_URL).then((res) =>
+    res.text().then((res) => res),
+  )
+  return samlify.IdentityProvider({ metadata })
+}
+```
+
+```ts
+const getSp = (relayState?: string) => {
+  const acsUrl = `${process.env.HOSTNAME}acs`
+  const location = `${acsUrl}${
+    relayState ? `?${new URLSearchParams({ relayState })}` : ''
+  }`
+  return samlify.ServiceProvider({
+    entityID: process.env.HOSTNAME,
+    nameIDFormat: ['urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified'],
+    assertionConsumerService: [
+      {
+        Binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+        Location: location,
+      },
+      {
+        Binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+        Location: location,
+      },
+    ],
+  })
+}
+```
+
+```ts
+samlify.setSchemaValidator({
+  validate: (response: string) => {
+    /* implment your own or always return a resolved promise to skip */
+    return Promise.resolve(response)
+  },
+})
+```
+
+```ts
+const CLAIMS_KEY = 'http://schemas.sec.com/2018/05/identity/claims'
+
+const parseClaims = (
+  attributes: Record<`${typeof CLAIMS_KEY}/${string}`, string>,
+): ADFSUser => {
+  const getValue = (key: string) => attributes[`${CLAIMS_KEY}/${key}`] ?? ''
+  return {
+    loginId: getValue('LoginId'),
+    compId: getValue('CompId'),
+    deptId: getValue('DeptId'),
+    sOrgId: getValue('SOrgId'),
+    mail: getValue('Mail'),
+    compName: getValue('CompName'),
+    deptName: getValue('DeptName'),
+    username: getValue('Username'),
+    userNameEn: getValue('UserName_EN'),
+    compNameEn: getValue('CompName_EN'),
+    deptNameEn: getValue('DeptName_EN'),
+  }
+}
+```
+
+```ts
+const USER_SESSION_KEY = 'user'
+
+const sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: '__session',
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secrets: [process.env.SESSION_SECRET as string],
+    secure: process.env.NODE_ENV === 'production',
+  },
+})
+
+export const getSession = async (request: Request) => {
+  const cookie = request.headers.get('Cookie')
+  return sessionStorage.getSession(cookie)
+}
+
+const createUserSession = async ({
+  request,
+  loginId,
+  expiry,
+  relayState,
+}: {
+  request: Request
+  loginId: string
+  expiry: string
+  relayState: string
+}) => {
+  const today = Date.now()
+  const tomorrow = today + 60 * 60 * 24
+  const expirationDate = new Date(expiry || tomorrow)
+  const maxAge = expirationDate.getTime() - new Date(today).getTime()
+  const session = await getSession(request)
+  session.set(USER_SESSION_KEY, loginId)
+  return redirect(relayState, {
+    headers: {
+      'Set-Cookie': await sessionStorage.commitSession(session, { maxAge }),
+    },
+  })
+}
+
+const getUserSession = async (request: Request) => {
+  const session = await getSession(request)
+  const userSession = session.get(USER_SESSION_KEY) as string
+  if (!userSession) {
+    const searchParams = new URLSearchParams({ relayState: request.url })
+    throw redirect(`/login?${searchParams}`)
+  }
+  return userSession
+}
+```
+
+## Login Flow
+
+\*\*Highlight that it is difficult to set a relayState
