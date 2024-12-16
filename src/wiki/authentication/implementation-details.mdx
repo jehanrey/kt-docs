@@ -7,50 +7,19 @@ order: 2
 
 # Implementation Details
 
-## Technical Architecture
-
-- Network topology
-- Authentication infrastructure
-- Identity management system
-
 ## Supported Protocols
 
-- SAML 2.0 detailed walkthrough
-- OAuth 2.0 implementation
-- OpenID Connect specifics
+SSO leverages authentication protocols to enable secure communication between Identity Providers (IdPs) and Service Providers (SPs). Two widely-used protocols are SAML 2.0 and OpenID Connect (OIDC).
+
+- **SAML (Security Assertion Markup Language) 2.0** is an XML-based protocol that enables Single Sign-On (SSO) for web applications
+- **OpenID Connect (OIDC)** is a modern authentication protocol built on top of OAuth 2.0. It is lightweight, JSON-based, and designed for web, mobile, and API-driven applications
 
 ## Configuration Process
 
-- Identity Provider setup
-- Service Provider registration
-- Metadata exchange
-- Certificate management
+- Identity Provider setup - point to metadata
+- Service Provider registration - point to ppt
+- Certificate management - point to certificate
 
-## Code Implementation
+## Local Development
 
-- Authentication middleware
-- Token validation logic
-- Error handling strategies
-- Refresh token management
-
-## Integration Examples
-
-- Frontend authentication flow
-- Backend service authentication
-- API access authentication
-
-## Monitoring and Logging
-
-- Authentication attempt tracking
-- Failed login detection
-- Security event logging
-- Audit trail maintenance
-
-## Supported Identity Providers
-
-- Detailed configuration for each provider
-  - Azure AD
-  - Okta
-  - Google Workspace
-- Provider-specific nuances
-- Migration considerations
+- Setting up localhost:44369

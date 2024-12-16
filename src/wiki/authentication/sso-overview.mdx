@@ -9,31 +9,40 @@ order: 1
 
 ## Introduction
 
-- Definition of Single Sign-On (SSO)
-- Core objectives of SSO
-- Benefits for the organization
+### Definition of Single Sign-On (SSO)
 
-## Authentication Fundamentals
+Single Sign-On (SSO) is an authentication mechanism that allows users to access multiple applications or systems with a single set of login credentials. By centralizing authentication, SSO improves user convenience, enhances security, and reduces the need for managing multiple credentials. It works by delegating authentication to a trusted Identity Provider (IdP), which issues tokens to grant access to connected services without requiring users to log in repeatedly.
 
-- What is authentication?
-- Different authentication methods
-- Why SSO is superior to traditional login methods
+### Core objectives of SSO
+
+1. **Enhanced User Experience**: Simplify the authentication process by enabling users to log in once and access multiple applications or services seamlessly, reducing the need to login again and again.
+1. **Improved Security**: Centralize authentication to minimize password management risks, enforce stronger password policies, and reduce the attack surface for credential theft.
+1. **Increased Efficiency**: Save time for both users and IT administrators by reducing the need to handle password resets and multiple authentication systems.
+1. **Centralized Access Control**: Provide organizations with better control over user permissions, allowing quick onboarding, role-based access, and streamlined deactivation of accounts when users leave.
+1. **Compliance and Auditability**: Ensure compliance with security standards and regulations by maintaining a unified and auditable authentication framework.
 
 ## SSO Concepts
 
-- Identity Provider (IdP)
-- Service Provider (SP)
-- Authentication tokens
-- Claims and assertions
+### Identity Provider (IdP)
 
-## Use Cases
+An Identity Provider (IdP) is a trusted system or service that handles user authentication and provides identity information to other applications or systems. In the context of SSO, the IdP validates the user's credentials and issues authentication tokens. The IdP acts as the central authority responsible for verifying user identities.
 
-- Enterprise applications
-- Cloud service integration
-- Cross-platform access
+### Service Provider (SP)
 
-## Our Organization's SSO Strategy
+A Service Provider (SP) is the application or system that users want to access. Instead of directly managing authentication, the SP relies on the Identity Provider (IdP) to validate user identities. The SP trusts the authentication tokens issued by the IdP to grant access to its resources.
 
-- Overall authentication philosophy
-- Key security priorities
-- Integration approach
+### Authentication Tokens
+
+Authentication tokens are digital credentials issued by the Identity Provider (IdP) after successfully verifying a user's identity. These tokens contain encoded information, such as user identity, authentication status, and expiration time. They are securely passed between the IdP and Service Provider (SP) to grant access. Common token formats include:
+
+- **SAML Tokens**: XML-based tokens used in SAML (Security Assertion Markup Language) protocols.
+- **JWT (JSON Web Tokens)**: A compact and secure token format that's widely used in modern SSO systems.
+
+Tokens eliminate the need for repeatedly transmitting sensitive credentials, reducing the risk of exposure.
+
+### Claims and Assertions
+
+Claims and assertions are pieces of identity-related information contained within authentication tokens:
+
+- **Claims**: Represent specific attributes about the authenticated user, such as their name, email, or department.
+- **Assertions**: Refer to statements issued by the Identity Provider (IdP) confirming the user's authentication and attributes.
