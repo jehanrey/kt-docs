@@ -13,11 +13,20 @@ order: 3
 
 ## Implementation
 
+### Environment Variables
+
+We need to define the values that we will be using within our SAML config. Since we are deploying to multiple environments, we can utilize environment variables for us to be able to seamlessly change config values depending on the environment we're deploying to.
+
+Firstly, we can declare the url of the `METADATA` as well as the `HOSTNAME` registered to ADSSO inside our `.env` file. Here's what our `.env` file would look like:
+
 ```
 METADATA = https://sts-dev.secsso.net/federationmetadata/2007-06/federationmetadata.xml
 HOSTNAME = https://seoul-dir-portals.samsungdiroute.net/
-API_URL = https://seoul-dir-portals.samsungdiroute.net/apis
 ```
+
+### Identity Provider
+
+Using the metadata that we fetch from the ADSSO site, we can create our IdP. You can learn more about setting up the Identity Provider on the [samlify documentation](https://samlify.js.org/#/idp-configuration).
 
 ```ts
 const getIdp = async () => {
@@ -27,6 +36,10 @@ const getIdp = async () => {
   return samlify.IdentityProvider({ metadata })
 }
 ```
+
+### Service Provider
+
+Then we need to create our SP from the hostname and we can customize our configuration here. You can learn more about setting up the Service Provider on the [samlify documentation](https://samlify.js.org/#/sp-configuration).
 
 ```ts
 const getSp = (relayState?: string) => {
@@ -51,6 +64,10 @@ const getSp = (relayState?: string) => {
 }
 ```
 
+### Schema Validator
+
+Set up the schema validator. You can learn more about setting up a schema validtor on the [samlify github page](https://github.com/tngan/samlify/blob/master/README.md#installation).
+
 ```ts
 samlify.setSchemaValidator({
   validate: (response: string) => {
@@ -59,6 +76,88 @@ samlify.setSchemaValidator({
   },
 })
 ```
+
+## Login Flow
+
+### Root Loader
+
+We can check for the existence of our user session on the `loader` of the `/app/routes/root.tsx`. If the user session does not exist, we will redirect the request to `/login` to trigger the login flow.
+
+```ts
+const loader = async ({ request }: LoaderFunctionArgs) => {
+  return json({
+    user: await getUserSession(request),
+  })
+}
+
+const getUserSession = async (request: Request) => {
+  const session = await getSession(request)
+  const userSession = session.get(USER_SESSION_KEY) as string
+  if (!userSession) {
+    const searchParams = new URLSearchParams({ relayState: request.url })
+    throw redirect(`/login?${searchParams}`)
+  }
+  return userSession
+}
+```
+
+### Login
+
+The request is redirected to the SSO login page through the SAML url which is generated using the [SP config](#service-provider).
+{/* Maybe put this in an aside banner */}
+**NOTE:** Dynamically assigning the `relayState` is not currently supported by `samlify`. See discussion [here](https://github.com/tngan/samlify/issues/163).
+
+```ts
+const loader = async ({ request }: LoaderFunctionArgs) => {
+  try {
+    const url = new URL(request.url)
+    const pathname = url.searchParams.get('relayState') ?? '/'
+    const sp = getSp(pathname)
+    const idp = await getIdp()
+    const { context } = sp.createLoginRequest(idp, 'redirect')
+    return redirect(context)
+  } catch (error) {
+    console.error({ error })
+  }
+}
+```
+
+### Assertion Consumer Service
+
+After a successful login to the IdP, we are redirected to the `Location` of the `assertionConsumerService` as defined in our [SP config](#service-provider), which is a `POST` request to `/acs`. The request `body` should contain the user profile from the IdP, which we can parse to extract the user claims and assertion expiry.
+
+```ts
+const action = async ({ request }: ActionFunctionArgs) => {
+  if (request.method == 'POST') {
+    const { searchParams } = new URL(request.url)
+    const formData = await request.formData()
+    const body = Object.fromEntries(formData)
+    const relayState = searchParams.get('relayState') ?? '/'
+    try {
+      const sp = getSp()
+      const idp = await getIdp()
+      const { extract } = await sp.parseLoginResponse(idp, 'post', {
+        body,
+      })
+      const { loginId } = parseClaims(extract.attributes)
+      return createUserSession({
+        request,
+        expiry: extract.conditions.notOnOrAfter,
+        loginId,
+        relayState,
+      })
+    } catch (error) {
+      console.error(error)
+    }
+    return redirect('/access-denied')
+  }
+  return redirect('/')
+}
+```
+
+### Claims
+
+We can extract the user's claims as well as the session expiry from the IdP response `extract`. The SAML claims are stored as key-value pairs within `extract.attributes`.
 
 ```ts
 const CLAIMS_KEY = 'http://schemas.sec.com/2018/05/identity/claims'
@@ -82,6 +181,10 @@ const parseClaims = (
   }
 }
 ```
+
+### Session
+
+We can then create a session from the extracted claims, which will also serve as our identifier that the user has logged-in successfuly to the Single Sign-On. You can learn more about Cookie Session management from the [Remix documentation](https://remix.run/docs/en/main/utils/sessions#createcookiesessionstorage).
 
 ```ts
 const USER_SESSION_KEY = 'user'
@@ -125,18 +228,4 @@ const createUserSession = async ({
     },
   })
 }
-
-const getUserSession = async (request: Request) => {
-  const session = await getSession(request)
-  const userSession = session.get(USER_SESSION_KEY) as string
-  if (!userSession) {
-    const searchParams = new URLSearchParams({ relayState: request.url })
-    throw redirect(`/login?${searchParams}`)
-  }
-  return userSession
-}
 ```
-
-## Login Flow
-
-\*\*Highlight that it is difficult to set a relayState

@@ -13,9 +13,11 @@ order: 4
 
 ## Implementation
 
+### Environment Variables
+
 We need to define the values that we will be using within our SAML config. Since we are deploying to multiple environments, we can utilize environment variables for us to be able to seamlessly change config values depending on the environment we're deploying to.
 
-Firstly, we can declare our `entryPoint`, `callbackUrl`, `logoutUrl`, `issuer`, and `idpCert` inside our `.env` file. In this case, here's what our `.env.development` would look like:
+Firstly, we can declare our `entryPoint`, `callbackUrl`, `logoutUrl`, `issuer`, and `idpCert` inside our `.env` file. In this case, here's what our `.env.development` file would look like:
 
 ```
 ENTRY_POINT = https://sts-dev.secsso.net/adfs/ls
@@ -24,6 +26,8 @@ ISSUER = https://seoul-dir-portals.samsungdiroute.net/
 LOGOUT_URL = https://sts-dev.secsso.net/adfs/ls/?wa=wsignoutcleanup1.0
 IDP_CERT = MII***
 ```
+
+### Config
 
 This is our completed SAML config which we will use later to integrate within our login flow.
 
@@ -42,7 +46,9 @@ const saml = new SAML({
 
 ## Login Flow
 
-DIR employs an authentication system that leverages http-only cookies to maintain user state. We makes use of `middleware.ts` to validate the the cookies of incoming requests. When an incoming request do not contain the valid tokens, the requests are redirected to `/api/login` to trigger the login flow.
+### Middleware
+
+DIR employs an authentication system that leverages http-only cookies to maintain user state. We makes use of `middleware.ts` to validate the the cookies of incoming requests. When an incoming request do not contain the valid tokens, it is redirected to `/api/login` to trigger the login flow.
 
 ```ts
 const middleware = async (request: NextRequest) => {
@@ -69,7 +75,9 @@ export const config = {
 }
 ```
 
-The request is redirected to the SSO login page through the SAML url which is generated using the config that we defined [earlier](#implementation).
+### Login
+
+The request is redirected to the SSO login page through the SAML url which is generated using the config that we defined [earlier](#saml-config).
 
 ```ts
 const GET = async (request: NextRequest) => {
@@ -86,6 +94,8 @@ const GET = async (request: NextRequest) => {
   redirect(loginUrl)
 }
 ```
+
+### Callback
 
 After a successful login to the IdP, we are redirected to the `callbackUrl`, which is a `POST` request to `/api/login`. The request `body` should contain the user profile from the IdP, which we can parse to extract the data that we need.
 
@@ -109,6 +119,8 @@ const POST = async (request: NextRequest) => {
   redirect(nextUrl)
 }
 ```
+
+### Claims
 
 We can extract the user's claims as well as the session expiry from the `profile` object.
 
@@ -157,6 +169,8 @@ function parseConditions(getAssertionXml?: Profile['getAssertionXml']) {
   return expiry
 }
 ```
+
+### Cookies
 
 DIR employs an API security layer which requires the user to log in to the API server and receive a JWT token. This token is specific to the user and the requested role.
 

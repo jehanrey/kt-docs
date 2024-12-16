@@ -15,9 +15,7 @@ order: 1
 
 ## Implementation
 
-### SAML config
-
-First, we define the SAML config inside `lib/passport/strategy.ts`
+### Environment Variables
 
 We need to define the values that we will be using within our SAML config. Since we are supporting multiple environments, we can make use of environment variables for us to be able to seamlessly change config values depending on the environment we're in.
 
@@ -41,6 +39,8 @@ const fpath = path.join(process.env.PWD || '', process.env.IDP_CERT || '')
 const idpCert = fs.readFileSync(fpath, 'utf8')
 ```
 
+### Config
+
 Then we'll have our completed SAML config.
 
 ```ts
@@ -57,7 +57,7 @@ const samlConfig: SamlConfig = {
 }
 ```
 
-### SAML strategy
+### Strategy
 
 We'll set up our SAML `Strategy` which we will be using throughout the authentication process.
 
@@ -76,7 +76,7 @@ const signonVerify: VerifyWithoutRequest = async (profile, done) => {
 }
 ```
 
-### Extracting user data from profile
+### Claims
 
 We can extract the user's claims from the `profile` object.
 
@@ -130,6 +130,8 @@ const parseConditions = (getAssertionXml?: Profile['getAssertionXml']) => {
 
 ## Login Flow
 
+### Auth Guard
+
 The login flow begins with the `<AuthGuard />` component that wraps the application. After mounting, a client-side query is triggered to check the cookies for a valid token. When a valid token is found, we will proceed to render the rest of the applcation. When no valid token is found, the user will be redirected to `/api/login` route.
 
 ```ts
@@ -156,6 +158,8 @@ const AuthGuard = ({ children }: { children: ReactNode }) => {
 }
 ```
 
+### Login
+
 We need a `GET` request to initaite the SSO, and a `POST` callback to handle SAML response.
 
 We make use of `next-connect` to provide a middleware layer for our API route.
@@ -174,6 +178,8 @@ router.get(
   },
 )
 ```
+
+### Callback
 
 ```ts
 router.post(async (req, res) => {
@@ -200,6 +206,8 @@ router.post(async (req, res) => {
   }
 })
 ```
+
+### Cookies
 
 We attach a cookie to the response of the `POST` request. This will be our identifier that the user is authenticated.
 

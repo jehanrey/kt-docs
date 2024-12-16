@@ -11,7 +11,7 @@ const { headings } = Astro.props
 
 const { pathname } = Astro.url
 
-const headingsToRender = headings.filter(({ depth }) => depth <= 2)
+const headingsToRender = headings.filter(({ depth }) => depth <= 3)
 ---
 
 <ul id="toc" class="m-0 list-none">
@@ -19,10 +19,11 @@ const headingsToRender = headings.filter(({ depth }) => depth <= 2)
     headingsToRender.map(({ depth, slug, text }) => {
       return (
         <li
-          class={parseClassNames('mt-0 pt-2 text-muted-foreground', [
-            'pl-4',
-            depth !== 1,
-          ])}
+          class={parseClassNames(
+            'mt-0 pt-2 text-muted-foreground',
+            ['pl-4', depth === 2],
+            ['pl-8', depth === 3],
+          )}
         >
           <a href={`${pathname}#${slug}`}>{text}</a>
         </li>
