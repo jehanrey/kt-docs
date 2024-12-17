@@ -13,9 +13,17 @@ order: 3
 
 For more details, please refer to the MFA POC branch created by Mr. Kyoungyoup Park [here](https://github.sec.samsung.net/UAP/dh-backend/commit/afe643492c03ab9583b2afb488ac49fbd78a0519).
 
-Generate the request url with the appropriate values.
+To trigger the login flow, redirect the request to the request url with the config values.
 
 ```java
+@GetMapping("/sso/login")
+public ResponseEntity<Object> loginUser() throws URISyntaxException {
+    URI redirectUri = new URI(buildAdfsAuthUrl());
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setLocation(redirectUri);
+    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+}
+
 private String buildAdfsAuthUrl() {
     return ssoConfig.getIdpUrl()
         + "?client_id=" + ssoConfig.getIdpClientId()
@@ -27,24 +35,12 @@ private String buildAdfsAuthUrl() {
 }
 ```
 
-To trigger the login flow, redirect the request to the created request URL.
-
-```java
-@GetMapping("/sso/login")
-public ResponseEntity<Object> loginUser() throws URISyntaxException {
-    URI redirectUri = new URI(buildAdfsAuthUrl());
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.setLocation(redirectUri);
-    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
-}
-```
-
 On the callback for the login request, redirect the request to `/External/SecondAuth` together with the JWT from the IdP.
 
 ```java
 @PostMapping(value = "/sso/callback", produces = MediaType.APPLICATION_JSON_VALUE)
-public ResponseEntity<String> loginCallback() throws Exception {
-    String token = getTokenFromRequestBody()
+public ResponseEntity<String> loginCallback(SSOResponse ssoResponse) throws Exception {
+    String token = ssoResponse.getJwtTokenResponse()
     URI mfaUri = new URIBuilder("https://mfa-dev.secsso.net/External/SecondAuth")
         .addParameter("jwtTokenRequest", token)
         .build();
