@@ -16,21 +16,25 @@ const { headings, minutesRead, lastModified } = Astro.props
   <div class="sticky top-20 h-[calc(100vh-8rem)] self-start overflow-y-auto">
     <dl class="space-y-6">
       <div>
-        <dt class="font-mono-display text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+        <dt
+          class="font-mono-display text-muted-foreground text-[10px] font-medium tracking-[0.15em] uppercase"
+        >
           Last Updated
         </dt>
-        <dd class="mt-1 text-sm text-foreground">{lastModified}</dd>
+        <dd class="text-foreground mt-1 text-sm">{lastModified}</dd>
       </div>
       <div>
-        <dt class="font-mono-display text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+        <dt
+          class="font-mono-display text-muted-foreground text-[10px] font-medium tracking-[0.15em] uppercase"
+        >
           Reading Time
         </dt>
-        <dd class="mt-1 text-sm text-foreground">{minutesRead}</dd>
+        <dd class="text-foreground mt-1 text-sm">{minutesRead}</dd>
       </div>
       {
         headings?.length && (
           <div>
-            <dt class="font-mono-display text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+            <dt class="font-mono-display text-muted-foreground text-[10px] font-medium tracking-[0.15em] uppercase">
               On This Page
             </dt>
             <dd class="mt-2">

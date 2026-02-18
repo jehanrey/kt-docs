@@ -1,5 +1,5 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content'
+import { getCollection, render } from 'astro:content'
 import dayjs from 'dayjs'
 
 import { getCategorizedAuthCollection } from '@/helpers/loaders'
@@ -18,10 +18,6 @@ export async function getStaticPaths() {
   })
 }
 
-interface Props {
-  entry: CollectionEntry<'authentication'>
-}
-
 const entry = Astro.props.entry
 const { Content, remarkPluginFrontmatter, headings } = await render(entry)
 
@@ -33,7 +29,7 @@ const lastModified = (() => {
 })()
 
 const authNavigation: Array<NavigationItem> = Object.entries(
-  await getCategorizedAuthCollection()
+  await getCategorizedAuthCollection(),
 ).map(([category, entries]) => {
   return {
     display: config[category as Category],

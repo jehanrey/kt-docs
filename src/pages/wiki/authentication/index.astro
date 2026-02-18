@@ -6,7 +6,7 @@ const authCollection = await getSortedAuthCollection()
 
 if (authCollection.at(0)?.id) {
   return Astro.rewrite(
-    baseHref(`/wiki/authentication/${authCollection.at(0).id}`)
+    baseHref(`/wiki/authentication/${authCollection.at(0).id}`),
   )
 }
 

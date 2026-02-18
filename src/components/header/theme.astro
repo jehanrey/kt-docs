@@ -1,6 +1,6 @@
 <button
   id="themeToggle"
-  class="border border-border px-2 py-1 font-mono-display text-xs text-muted-foreground transition-colors hover:border-electric hover:text-electric"
+  class="border-border font-mono-display text-muted-foreground hover:border-electric hover:text-electric border px-2 py-1 text-xs transition-colors"
   aria-label="Toggle theme"
 >
   <span class="label-dark">dark</span>
@@ -59,10 +59,18 @@
   }
 
   /* In dark mode (default): show "dark" label */
-  .label-dark { display: block; }
-  .label-light { display: none; }
+  .label-dark {
+    display: block;
+  }
+  .label-light {
+    display: none;
+  }
 
   /* In light mode: show "light" label */
-  :global(html:not(.dark)) .label-dark { display: none; }
-  :global(html:not(.dark)) .label-light { display: block; }
+  :global(html:not(.dark)) .label-dark {
+    display: none;
+  }
+  :global(html:not(.dark)) .label-light {
+    display: block;
+  }
 </style>

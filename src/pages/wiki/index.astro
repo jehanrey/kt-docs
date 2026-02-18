@@ -11,11 +11,15 @@ const authCollection = await getCategorizedAuthCollection()
 <Base title="Wiki">
   <div class="container mx-auto px-6 lg:px-8">
     <div class="mx-auto max-w-5xl py-16">
-      <div class="animate-fade-up mb-14 border-b border-border pb-8">
-        <p class="mb-3 font-mono-display text-xs font-medium uppercase tracking-[0.15em] text-electric">
+      <div class="animate-fade-up border-border mb-14 border-b pb-8">
+        <p
+          class="font-mono-display text-electric mb-3 text-xs font-medium tracking-[0.15em] uppercase"
+        >
           Documentation Hub
         </p>
-        <h1 class="font-mono-display text-5xl font-bold leading-none tracking-tight text-foreground">
+        <h1
+          class="font-mono-display text-foreground text-5xl leading-none font-bold tracking-tight"
+        >
           Knowledge Base
         </h1>
       </div>
@@ -23,27 +27,37 @@ const authCollection = await getCategorizedAuthCollection()
       {
         wikiConfig.map(({ title, description, categories }, i) => {
           return (
-            <div class={`animate-fade-up delay-${(i + 2) * 100} space-y-6 pb-14`}>
+            <div
+              class={`animate-fade-up delay-${(i + 2) * 100} space-y-6 pb-14`}
+            >
               <div class="flex items-baseline gap-6">
-                <h2 class="shrink-0 font-mono-display text-2xl font-bold text-foreground">
+                <h2 class="font-mono-display text-foreground shrink-0 text-2xl font-bold">
                   {title}
                 </h2>
-                <div class="h-px flex-1 bg-border" />
+                <div class="bg-border h-px flex-1" />
               </div>
-              <p class="max-w-xl text-sm text-muted-foreground">{description}</p>
+              <p class="text-muted-foreground max-w-xl text-sm">
+                {description}
+              </p>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                 {categories.map(({ category, description, title }) => {
                   const id = authCollection[category].at(0)?.id
                   return (
                     <Card
-                      href={id ? baseHref(`/wiki/authentication/${id}`) : undefined}
+                      href={
+                        id ? baseHref(`/wiki/authentication/${id}`) : undefined
+                      }
                     >
                       <div class="flex flex-col space-y-3">
-                        <p class="font-mono-display text-[10px] font-medium uppercase tracking-[0.1em] text-electric">
+                        <p class="font-mono-display text-electric text-[10px] font-medium tracking-widest uppercase">
                           {category}
                         </p>
-                        <h3 class="text-lg font-medium text-foreground">{title}</h3>
-                        <p class="text-sm text-muted-foreground">{description}</p>
+                        <h3 class="text-foreground text-lg font-medium">
+                          {title}
+                        </h3>
+                        <p class="text-muted-foreground text-sm">
+                          {description}
+                        </p>
                       </div>
                     </Card>
                   )

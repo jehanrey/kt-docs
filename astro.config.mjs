@@ -1,9 +1,9 @@
 // @ts-check
 import mdx from '@astrojs/mdx'
 import preact from '@astrojs/preact'
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
 import rehypeExternalLinks from 'rehype-external-links'
-import tailwindcss from '@tailwindcss/vite'
 
 import { remarkModifiedTime } from './src/lib/markdown/remark-modified-time.mjs'
 import { remarkReadingTime } from './src/lib/markdown/remark-reading-time.mjs'

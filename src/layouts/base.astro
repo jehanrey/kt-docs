@@ -29,9 +29,7 @@ const { title, description, footer = true } = Astro.props
     {description && <meta name="description" content={description} />}
     <ClientRouter />
   </head>
-  <body
-    class="isolate flex h-fit min-h-screen w-full flex-col overflow-x-clip"
-  >
+  <body class="isolate flex h-fit min-h-screen w-full flex-col overflow-x-clip">
     <Header />
     <main class="relative flex grow flex-col">
       <div class="flex grow">

@@ -23,12 +23,12 @@ const headingsToRender = headings.filter(({ depth }) => depth <= 3)
             'text-sm',
             ['pl-0', depth === 1],
             ['pl-3', depth === 2],
-            ['pl-6', depth === 3]
+            ['pl-6', depth === 3],
           )}
         >
           <a
             href={`${pathname}#${slug}`}
-            class="block py-1 text-muted-foreground transition-colors hover:text-electric"
+            class="text-muted-foreground hover:text-electric block py-1 transition-colors"
           >
             {text}
           </a>

@@ -30,12 +30,14 @@ src/
 
 ## Common Commands
 
-| Command           | Action                                        |
-| :---------------- | :-------------------------------------------- |
-| `pnpm dev`        | Start dev server at `localhost:4321`          |
-| `pnpm build`      | Type-check (`astro check`) + production build |
-| `pnpm preview`    | Preview production build locally              |
-| `pnpm lint`       | ESLint on `src/`                              |
+| Command             | Action                                        |
+| :------------------ | :-------------------------------------------- |
+| `pnpm dev`          | Start dev server at `localhost:4321`          |
+| `pnpm build`        | Type-check (`astro check`) + production build |
+| `pnpm preview`      | Preview production build locally              |
+| `pnpm lint`         | ESLint on `src/`                              |
+| `pnpm format:check` | Check formatting with Prettier                |
+| `pnpm typecheck`    | Type-check with `astro check`                 |
 
 ## Content Collections
 
@@ -55,7 +57,7 @@ order: number
 - **Imports:** builtin → external → internal → sibling/parent (enforced by ESLint)
 - **Type imports:** `import type` syntax required for type-only imports
 - **Path alias:** `@/*` → `src/*`
-- **Formatting:** Prettier with Tailwind class sorting (run automatically)
+- **Formatting:** Prettier with Tailwind class sorting. Run `pnpm format:check` after changes.
 - **Markdown features:** reading time and git-based modified time injected via custom remark plugins in `src/lib/markdown/`
 
 ## Deployment
