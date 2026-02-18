@@ -11,10 +11,11 @@ const { class: className, href } = Astro.props
 
 <div
   class={parseClassNames(
-    'relative rounded-lg border p-6 shadow-md transition-shadow hover:shadow-lg',
+    'group relative border border-border bg-card p-6 transition-colors duration-200 hover:border-electric',
     className
   )}
 >
   <slot />
   {href && <a class="absolute inset-0" href={href} />}
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-electric opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 </div>

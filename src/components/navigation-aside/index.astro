@@ -12,25 +12,27 @@ const { items } = Astro.props
 const { pathname } = Astro.url
 ---
 
-<aside class="hidden w-48 border-r py-6 pr-3 md:block">
+<aside class="animate-slide-left hidden w-52 shrink-0 py-8 pr-4 md:block">
   <div class="sticky top-20 h-[calc(100vh-8rem)] self-start overflow-y-auto">
     {
       items.map(({ display, children }) => {
         return (
-          <div class="my-2 pb-8">
-            <h4 class="mb-1 rounded-md px-2 py-1 text-sm font-medium">
+          <div class="mb-8">
+            <h4 class="mb-3 font-mono-display text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
               {display}
             </h4>
-            <div class="grid grid-flow-row auto-rows-max text-sm">
+            <div class="grid grid-flow-row auto-rows-max">
               {children?.map(({ display, route }) => {
                 const href = `${BASE}${route}`
                 const hrefRegexp = new RegExp(`^${href}/?$`)
+                const isActive = hrefRegexp.test(pathname)
                 return (
                   <a
                     href={href}
                     class={parseClassNames(
-                      'flex w-full items-center rounded-md p-2 text-sm hover:underline',
-                      ['bg-muted', hrefRegexp.test(pathname)]
+                      'relative flex w-full items-center border-l py-1.5 pl-3 text-sm transition-colors',
+                      ['border-electric text-foreground', isActive],
+                      ['border-transparent text-muted-foreground hover:text-foreground', !isActive]
                     )}
                   >
                     {display}

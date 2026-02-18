@@ -4,13 +4,17 @@ import { BASE } from '@/helpers/constants'
 import Theme from './theme.astro'
 ---
 
-<header class="sticky top-0 z-40 border-b bg-background shadow-sm">
-  <div
-    class="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
-  >
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-      <a href={BASE}>KT Docs</a>
-    </h1>
+<header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-sm">
+  <div class="container mx-auto flex items-center justify-between px-6 py-2 lg:px-8">
+    <a
+      href={BASE}
+      class="flex items-baseline gap-0 font-mono-display text-sm font-medium tracking-tight text-foreground transition-colors hover:text-electric"
+    >
+      <span class="text-electric opacity-60">[</span>
+      <span>KT</span>
+      <span class="text-electric opacity-60">]</span>
+      <span class="ml-2 font-light text-muted-foreground">docs</span>
+    </a>
     <Theme />
   </div>
 </header>
