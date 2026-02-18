@@ -37,6 +37,7 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
   --color-electric: hsl(var(--electric));
+  --color-code-bg: hsl(var(--code-bg));
 
   /* Border radius — sharp everywhere */
   --radius-lg: var(--radius);
@@ -79,6 +80,7 @@
     --radius: 0rem;
 
     --electric: 188 100% 50%;
+    --code-bg: 230 15% 13%;
 
     color-scheme: dark;
   }
@@ -117,6 +119,7 @@
     --radius: 0rem;
 
     --electric: 188 80% 36%;
+    --code-bg: 210 16% 86%;
 
     color-scheme: light;
   }
