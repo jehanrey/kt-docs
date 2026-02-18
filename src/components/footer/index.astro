@@ -2,8 +2,13 @@
 import dayjs from 'dayjs'
 ---
 
-<footer class="border-t">
-  <div class="container flex items-center justify-center gap-4 py-2">
-    <span>Copyright {dayjs().year()} Samsung Electronics</span>
+<footer class="border-t border-border">
+  <div class="container mx-auto flex items-center justify-between px-6 py-4 lg:px-8">
+    <span class="font-mono-display text-xs text-muted-foreground">
+      &copy; {dayjs().year()} Samsung Electronics
+    </span>
+    <span class="font-mono-display text-xs text-muted-foreground opacity-40">
+      kt-docs
+    </span>
   </div>
 </footer>

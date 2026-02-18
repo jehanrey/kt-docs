@@ -1,26 +1,10 @@
-<button id="themeToggle" class="rounded-full bg-gray-200 p-2 dark:bg-gray-700">
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      class="sun"
-      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"></path>
-    <path
-      class="moon"
-      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"></path>
-  </svg>
+<button
+  id="themeToggle"
+  class="border border-border px-2 py-1 font-mono-display text-xs text-muted-foreground transition-colors hover:border-electric hover:text-electric"
+  aria-label="Toggle theme"
+>
+  <span class="label-dark">dark</span>
+  <span class="label-light">light</span>
 </button>
 
 <script is:inline>
@@ -32,10 +16,10 @@
       ) {
         return localStorage.getItem('theme')
       }
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark'
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        return 'light'
       }
-      return 'light'
+      return 'dark'
     })()
 
     if (theme === 'light') {
@@ -73,17 +57,12 @@
     border: 0;
     cursor: pointer;
   }
-  .sun {
-    display: block;
-  }
-  .moon {
-    display: none;
-  }
 
-  :global(.dark) .sun {
-    display: none;
-  }
-  :global(.dark) .moon {
-    display: block;
-  }
+  /* In dark mode (default): show "dark" label */
+  .label-dark { display: block; }
+  .label-light { display: none; }
+
+  /* In light mode: show "light" label */
+  :global(html:not(.dark)) .label-dark { display: none; }
+  :global(html:not(.dark)) .label-light { display: block; }
 </style>

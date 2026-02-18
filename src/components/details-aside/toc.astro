@@ -14,38 +14,48 @@ const { pathname } = Astro.url
 const headingsToRender = headings.filter(({ depth }) => depth <= 3)
 ---
 
-<ul id="toc" class="m-0 list-none">
+<ul id="toc" class="m-0 list-none space-y-0.5">
   {
     headingsToRender.map(({ depth, slug, text }) => {
       return (
         <li
           class={parseClassNames(
-            'mt-0 pt-2 text-muted-foreground',
-            ['pl-4', depth === 2],
-            ['pl-8', depth === 3],
+            'text-sm',
+            ['pl-0', depth === 1],
+            ['pl-3', depth === 2],
+            ['pl-6', depth === 3]
           )}
         >
-          <a href={`${pathname}#${slug}`}>{text}</a>
+          <a
+            href={`${pathname}#${slug}`}
+            class="block py-1 text-muted-foreground transition-colors hover:text-electric"
+          >
+            {text}
+          </a>
         </li>
       )
     })
   }
 </ul>
 
-<!-- <script>
+<script>
   function highlightActiveFragment() {
-    const currentUrl = `${location.pathname}${location.hash}`
+    const currentHash = location.hash
     const toc = document.querySelector('ul#toc')
     toc?.querySelectorAll('a').forEach((anchor) => {
-      anchor.classList.remove('text-primary')
+      anchor.classList.remove('text-electric')
+      anchor.classList.add('text-muted-foreground')
     })
-    const activeHeading = toc?.querySelector(
-      `a[href^="${currentUrl}"][href$="${currentUrl}"]`,
-    )
-    activeHeading?.classList.add('text-primary')
+    if (currentHash) {
+      const activeAnchor = toc?.querySelector(`a[href$="${currentHash}"]`)
+      if (activeAnchor) {
+        activeAnchor.classList.remove('text-muted-foreground')
+        activeAnchor.classList.add('text-electric')
+      }
+    }
   }
 
   highlightActiveFragment()
-
   document.addEventListener('astro:page-load', highlightActiveFragment)
-</script> -->
+  window.addEventListener('hashchange', highlightActiveFragment)
+</script>

@@ -5,9 +5,61 @@ import BaseLayout from '../layouts/base.astro'
 ---
 
 <BaseLayout title="KT Docs" footer={false}>
-  <div class="flex w-full grow flex-col items-center justify-center">
-    <a href={baseHref('/wiki')}>
-      <button>Get Started</button>
-    </a>
+  <div
+    id="hero"
+    class="grain dot-grid relative flex w-full grow flex-col items-center justify-center overflow-hidden px-6"
+  >
+    <!-- Eyebrow -->
+    <p class="animate-fade-up delay-100 mb-8 font-mono-display text-xs font-medium uppercase tracking-[0.2em] text-electric opacity-80">
+      Samsung BDW &middot; Knowledge Transfer
+    </p>
+
+    <!-- Hero headline -->
+    <h1
+      class="animate-fade-up delay-200 text-center font-mono-display"
+      style="font-size: clamp(4rem, 12vw, 10rem); line-height: 0.95; letter-spacing: -0.03em;"
+    >
+      <span class="text-stroke-electric block">Knowledge</span>
+      <span class="block text-foreground">Transfer</span>
+    </h1>
+
+    <!-- Description -->
+    <p class="animate-fade-up delay-300 mx-auto mt-10 max-w-md text-center font-sans-body text-sm text-muted-foreground">
+      Engineering documentation for authentication, SSO, and developer tooling.
+    </p>
+
+    <!-- CTAs -->
+    <div class="animate-fade-up delay-400 mt-10 flex items-center gap-4">
+      <a
+        href={baseHref('/wiki')}
+        class="border border-electric bg-transparent px-6 py-2.5 font-mono-display text-sm font-medium text-electric transition-colors hover:bg-electric hover:text-background"
+      >
+        Get Started
+      </a>
+      <a
+        href={baseHref('/wiki')}
+        class="border border-border px-6 py-2.5 font-mono-display text-sm font-medium text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+      >
+        Browse Docs
+      </a>
+    </div>
+
+    <!-- Bottom gradient fade -->
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
   </div>
 </BaseLayout>
+
+<script is:inline>
+  const hero = document.getElementById('hero')
+  if (hero) {
+    hero.addEventListener('mousemove', (e) => {
+      const rect = hero.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dx = ((e.clientX - cx) / rect.width) * 10
+      const dy = ((e.clientY - cy) / rect.height) * 10
+      hero.style.setProperty('--drift-x', `${dx}px`)
+      hero.style.setProperty('--drift-y', `${dy}px`)
+    })
+  }
+</script>
