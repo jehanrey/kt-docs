@@ -1,5 +1,7 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/typography" {
+  max-width: 40vw;
+}
 
 @custom-variant dark (&:where(.dark, .dark *));
 
