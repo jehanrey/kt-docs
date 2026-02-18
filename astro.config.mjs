@@ -1,9 +1,9 @@
 // @ts-check
 import mdx from '@astrojs/mdx'
 import preact from '@astrojs/preact'
-import tailwind from '@astrojs/tailwind'
 import { defineConfig } from 'astro/config'
 import rehypeExternalLinks from 'rehype-external-links'
+import tailwindcss from '@tailwindcss/vite'
 
 import { remarkModifiedTime } from './src/lib/markdown/remark-modified-time.mjs'
 import { remarkReadingTime } from './src/lib/markdown/remark-reading-time.mjs'
@@ -12,7 +12,10 @@ import { remarkReadingTime } from './src/lib/markdown/remark-reading-time.mjs'
 export default defineConfig({
   site: 'https://jehanrey.github.io',
   base: 'kt-docs',
-  integrations: [tailwind(), preact(), mdx()],
+  integrations: [preact(), mdx()],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   markdown: {
     shikiConfig: {
       theme: 'houston',
